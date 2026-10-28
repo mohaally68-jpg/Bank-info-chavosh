@@ -298,66 +298,88 @@ document.querySelectorAll(".field").forEach(btn=>{
 });
 </script>
 <script>
-/* موسیقی پس‌زمینه: تلاش برای پخش بلافاصله، با صدای روشن */
-(function(){
-  const audio=document.getElementById("bgm");
-  const btn=document.getElementById("mbtn");
-  const TARGET=.55;
-  let wanted=true;
-  const setUI=on=>{
-    btn.classList.toggle("on",on);
-    btn.setAttribute("aria-label",on?"قطع موسیقی":"پخش موسیقی");
-    btn.setAttribute("aria-pressed",String(on));
-  };
-  // دکمه از ابتدا در دسترس است؛ منتظر بارگذاری متن‌ها و فونت‌ها نمی‌ماند.
-  btn.hidden=false;
-  audio.volume=TARGET;
+/* پخش موسیقی پس‌زمینه و کنترل روشن/خاموش */
+(function () {
+  const audio = document.getElementById("bgm");
+  const btn = document.getElementById("mbtn");
 
-  async function start(){
-    if(!wanted || !audio.paused || audio.error) return;
-    try{
+  if (!audio || !btn) return;
+
+  const TARGET_VOLUME = 0.55;
+  let userWantsMusic = true;
+  let starting = false;
+
+  audio.volume = TARGET_VOLUME;
+  btn.hidden = false;
+
+  function updateButton() {
+    const playing = !audio.paused;
+    btn.classList.toggle("on", playing);
+    btn.setAttribute("aria-pressed", String(playing));
+    btn.setAttribute("aria-label", playing ? "قطع موسیقی" : "پخش موسیقی");
+  }
+
+  async function playMusic() {
+    if (!userWantsMusic || starting || !audio.paused || audio.error) return;
+
+    starting = true;
+    try {
       await audio.play();
-      setUI(true);
-    }catch(e){
-      // محدودیت مرورگر: پخش خودکار با صدا ممکن است نیازمند اولین تعامل کاربر باشد.
-      setUI(false);
+    } catch (error) {
+      // بعضی مرورگرها پخش خودکار با صدا را مسدود می‌کنند.
+      // در این حالت، کاربر می‌تواند با کلیک روی دکمه پخش را شروع کند.
+    } finally {
+      starting = false;
+      updateButton();
     }
   }
 
-  const events=["pointerdown","touchstart","click","keydown"];
-  function onGesture(){
-    if(wanted && audio.paused) start();
-    if(!audio.paused) unlisten();
+  // تلاش برای پخش خودکار هنگام ورود به صفحه
+  playMusic();
+
+  // مهم: رویدادهای عمومی صفحه نباید هنگام کلیک روی دکمه اجرا شوند؛
+  // وگرنه همان کلیک ممکن است هم پخش را شروع کند و هم آن را قطع کند.
+  function retryAfterInteraction(event) {
+    if (event.target === btn || btn.contains(event.target)) return;
+
+    if (userWantsMusic && audio.paused) {
+      playMusic();
+    }
+
+    if (!audio.paused) {
+      document.removeEventListener("pointerdown", retryAfterInteraction, true);
+      document.removeEventListener("keydown", retryAfterInteraction, true);
+      document.removeEventListener("touchstart", retryAfterInteraction, true);
+    }
   }
-  function unlisten(){ events.forEach(ev=>window.removeEventListener(ev,onGesture,true)); }
-  events.forEach(ev=>window.addEventListener(ev,onGesture,true));
 
-  // درخواست پخش فوری، مستقل از انیمیشن ورود متن‌ها.
-  start();
+  document.addEventListener("pointerdown", retryAfterInteraction, true);
+  document.addEventListener("keydown", retryAfterInteraction, true);
+  document.addEventListener("touchstart", retryAfterInteraction, true);
 
-  btn.addEventListener("click",e=>{
-    e.stopPropagation();
-    if(audio.paused){
-      wanted=true;
-      start();
-    }else{
-      wanted=false;
+  btn.addEventListener("click", async function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!audio.paused) {
+      userWantsMusic = false;
       audio.pause();
-      setUI(false);
+      updateButton();
+      return;
     }
+
+    userWantsMusic = true;
+    await playMusic();
   });
 
-  audio.addEventListener("play",()=>setUI(true));
-  audio.addEventListener("pause",()=>setUI(false));
-  audio.addEventListener("error",()=>setUI(false));
+  audio.addEventListener("play", updateButton);
+  audio.addEventListener("pause", updateButton);
+  audio.addEventListener("error", updateButton);
 
-  document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="hidden"){
-      if(!audio.paused) audio.pause();
-    }else if(wanted){
-      start();
-    }
-  });
-})();</script>
+  // اگر صفحه در پس‌زمینه رفت، موسیقی را به‌زور قطع و وصل نکن؛
+  // این کار از رفتار ناخواسته هنگام برگشت به صفحه جلوگیری می‌کند.
+  updateButton();
+})();
+</script>
 </body>
 </html>
