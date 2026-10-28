@@ -34,6 +34,7 @@ body::before{
 /* صحنه: نسبت ثابت ۲:۳ مثل خود عکس، تا محتوا همیشه داخل هشتی بماند */
 .stage{
   visibility:hidden;
+  --u:1cqw;
   position:relative;
   width:min(100vw, calc(100dvh * 2 / 3));
   aspect-ratio:2/3;
@@ -57,7 +58,7 @@ body::before{
 .shop{
   font-family:"Aref Ruqaa","Vazirmatn",serif;
   font-weight:700;
-  font-size:9.4cqw;
+  font-size:calc(9.4 * var(--u));
   line-height:1.3;
   color:var(--gold-soft);
   text-shadow:0 0 18px rgba(232,201,135,.45),0 2px 6px rgba(0,0,0,.6);
@@ -65,18 +66,18 @@ body::before{
   will-change:transform,opacity,clip-path;
 }
 .rule{
-  height:2px;width:70%;margin:2.2cqw auto 3cqw;
+  height:2px;width:70%;margin:calc(2.2 * var(--u)) auto calc(3 * var(--u));
   background:linear-gradient(90deg,transparent,var(--gold),transparent);
   transform-origin:center;
   animation:draw 1.1s ease-out 1.1s both;
 }
 .owner{
-  font-weight:800;font-size:5cqw;
+  font-weight:800;font-size:calc(5 * var(--u));
   animation:rise .9s ease-out 1.6s both;
 }
 .hint{
-  font-size:3.2cqw;color:rgba(255,247,230,.72);
-  margin:1.2cqw 0 5cqw;
+  font-size:calc(3.2 * var(--u));color:rgba(255,247,230,.72);
+  margin:calc(1.2 * var(--u)) 0 calc(5 * var(--u));
   animation:rise .9s ease-out 1.9s both;
 }
 
@@ -84,9 +85,9 @@ body::before{
   display:block;width:100%;
   background:rgba(8,40,38,.55);
   border:1px solid var(--edge);
-  border-radius:3.2cqw;
-  padding:3.4cqw 2cqw 3cqw;
-  margin-bottom:3.6cqw;
+  border-radius:calc(3.2 * var(--u));
+  padding:calc(3.4 * var(--u)) calc(2 * var(--u)) calc(3 * var(--u));
+  margin-bottom:calc(3.6 * var(--u));
   color:inherit;font:inherit;cursor:pointer;
   position:relative;overflow:hidden;
   box-shadow:0 6px 18px rgba(0,0,0,.35);
@@ -113,34 +114,78 @@ body::before{
 .field:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .field.done{border-color:#9be3ae;background:rgba(40,110,70,.5)}
 
-.label{display:block;font-size:3.5cqw;color:var(--gold);margin-bottom:1.6cqw}
+.label{display:block;font-size:calc(3.5 * var(--u));color:var(--gold);margin-bottom:calc(1.6 * var(--u))}
 .value{
   display:block;direction:ltr;
   font-family:"Courier New",ui-monospace,monospace;
   font-weight:700;color:var(--ink);
   user-select:all;-webkit-user-select:all;
 }
-.value.card{font-size:4.7cqw;letter-spacing:.05em}
-.value.sheba{font-size:4cqw;letter-spacing:.04em;line-height:1.5}
-.tap{display:block;margin-top:1.6cqw;font-size:2.8cqw;color:rgba(255,247,230,.62)}
+.value.card{font-size:calc(4.7 * var(--u));letter-spacing:.05em}
+.value.sheba{font-size:calc(4 * var(--u));letter-spacing:.04em;line-height:1.5}
+.tap{display:block;margin-top:calc(1.6 * var(--u));font-size:calc(2.8 * var(--u));color:rgba(255,247,230,.62)}
 
 /* پیام کپی و تشکر (موقت) */
 .toast{
   position:absolute;left:19%;right:19%;
   bottom:19%;
-  padding:3cqw 3cqw;
+  padding:calc(3 * var(--u)) calc(3 * var(--u));
   text-align:center;
   background:rgba(10,52,46,.94);
   border:1px solid var(--gold);
-  border-radius:3.5cqw;
+  border-radius:calc(3.5 * var(--u));
   box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 22px rgba(232,201,135,.35);
   opacity:0;transform:translateY(14px) scale(.96);
   pointer-events:none;
   transition:opacity .35s ease,transform .35s cubic-bezier(.2,.9,.3,1.2);
 }
 .toast.show{opacity:1;transform:none}
-.toast b{display:block;font-size:4.4cqw;color:var(--gold-soft);margin-bottom:.8cqw}
-.toast span{font-size:3.3cqw;color:rgba(255,247,230,.9)}
+.toast b{display:block;font-size:calc(4.4 * var(--u));color:var(--gold-soft);margin-bottom:.calc(8 * var(--u))}
+.toast span{font-size:calc(3.3 * var(--u));color:rgba(255,247,230,.9)}
+
+/* گوشی و هر صفحه‌ی باریک‌تر از ۲:۳ : تمام‌صفحه */
+@media (max-aspect-ratio:2/3){
+  body::before{display:none}
+  .stage{
+    position:fixed;inset:0;
+    width:100vw;height:100vh;height:100dvh;
+    aspect-ratio:auto;box-shadow:none;
+    background-size:cover;background-position:center top;
+    --s:calc(100dvh / 1536);
+    --W:min(calc(var(--s) * 1024), calc((100vw - 32px) / .64));
+    --u:calc(var(--W) / 100);
+  }
+  .content{
+    left:calc(50% - var(--W) * .32 - var(--s) * 10);right:auto;
+    width:calc(var(--W) * .64);
+    top:18dvh;
+  }
+  .toast{
+    left:calc(50% - var(--W) * .31 - var(--s) * 10);right:auto;
+    width:calc(var(--W) * .62);
+    bottom:17dvh;
+  }
+}
+
+/* دکمه‌ی موسیقی */
+.mbtn{
+  position:fixed;z-index:20;
+  top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gold-soft);
+  background:rgba(8,40,38,.7);
+  border:1px solid var(--edge);
+  box-shadow:0 4px 14px rgba(0,0,0,.45);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  opacity:0;animation:rise .9s ease-out 3.2s both;
+}
+.mbtn[hidden]{display:none}
+.mbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.mbtn:not(.on) .w1,.mbtn:not(.on) .w2{display:none}
+.mbtn.on .x{display:none}
+.mbtn.on{box-shadow:0 0 0 0 rgba(232,201,135,.5),0 4px 14px rgba(0,0,0,.45);animation:rise .9s ease-out 3.2s both,pulse 2.8s ease-out 4.2s infinite}
+@keyframes pulse{to{box-shadow:0 0 0 12px rgba(232,201,135,0),0 4px 14px rgba(0,0,0,.45)}}
 
 @keyframes reveal{
   from{opacity:0;clip-path:inset(-20% 0 -20% 100%);transform:translateY(10px) scale(1.04)}
@@ -187,6 +232,16 @@ body::before{
     <span>سپاس از شما، پرداخت‌تان مبارک</span>
   </div>
 </div>
+
+<audio id="bgm" src="music.mp3" loop preload="auto" playsinline></audio>
+<button class="mbtn" id="mbtn" type="button" hidden aria-label="پخش یا قطع موسیقی">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/>
+    <path class="w1" d="M15.5 8.5a5 5 0 0 1 0 7"/>
+    <path class="w2" d="M18.5 5.5a9 9 0 0 1 0 13"/>
+    <path class="x" d="m16 9 5 6M21 9l-5 6"/>
+  </svg>
+</button>
 
 <noscript><style>.stage{visibility:visible}</style></noscript>
 <script>
@@ -241,6 +296,56 @@ document.querySelectorAll(".field").forEach(btn=>{
     },2600);
   });
 });
+</script>
+<script>
+/* موسیقی پس‌زمینه */
+(function(){
+  const audio=document.getElementById("bgm"), btn=document.getElementById("mbtn");
+  const TARGET=.55;
+  let wanted=true, fadeTimer;
+  const setUI=on=>btn.classList.toggle("on",on);
+  const reveal=()=>{ btn.hidden=false; };
+  audio.addEventListener("loadedmetadata",reveal);
+  audio.addEventListener("canplay",reveal);
+  if(audio.readyState>=1) reveal();
+
+  function fadeIn(){
+    clearInterval(fadeTimer);
+    try{ audio.volume=0; }catch(e){}
+    let v=0;
+    fadeTimer=setInterval(()=>{
+      v=Math.min(TARGET,v+.03);
+      try{ audio.volume=v; }catch(e){}
+      if(v>=TARGET) clearInterval(fadeTimer);
+    },120);
+  }
+  async function start(){
+    if(!wanted||!audio.paused||audio.error) return;
+    try{
+      await audio.play();
+      fadeIn(); setUI(true); unlisten();
+    }catch(e){ setUI(false); }
+  }
+  /* مرورگرها پخش خودکار صدا را تا اولین لمس کاربر مسدود می‌کنند */
+  const events=["pointerup","touchend","click","keydown"];
+  function onGesture(){ start(); }
+  function unlisten(){ events.forEach(ev=>window.removeEventListener(ev,onGesture,true)); }
+  events.forEach(ev=>window.addEventListener(ev,onGesture,true));
+  start();
+
+  btn.addEventListener("click",e=>{
+    e.stopPropagation();
+    if(audio.paused){ wanted=true; start(); }
+    else{ wanted=false; audio.pause(); setUI(false); }
+  });
+  audio.addEventListener("pause",()=>{ if(document.visibilityState!=="hidden") setUI(false); });
+  audio.addEventListener("play",()=>setUI(true));
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="hidden"){ if(!audio.paused) audio.pause(); }
+    else if(wanted){ start(); }
+  });
+})();
 </script>
 </body>
 </html>
