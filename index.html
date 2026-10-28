@@ -178,13 +178,13 @@ body::before{
   border:1px solid var(--edge);
   box-shadow:0 4px 14px rgba(0,0,0,.45);
   cursor:pointer;-webkit-tap-highlight-color:transparent;
-  opacity:0;animation:rise .9s ease-out 3.2s both;
+  opacity:1;
 }
 .mbtn[hidden]{display:none}
 .mbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .mbtn:not(.on) .w1,.mbtn:not(.on) .w2{display:none}
 .mbtn.on .x{display:none}
-.mbtn.on{box-shadow:0 0 0 0 rgba(232,201,135,.5),0 4px 14px rgba(0,0,0,.45);animation:rise .9s ease-out 3.2s both,pulse 2.8s ease-out 4.2s infinite}
+.mbtn.on{box-shadow:0 0 0 0 rgba(232,201,135,.5),0 4px 14px rgba(0,0,0,.45);animation:pulse 2.8s ease-out 1s infinite}
 @keyframes pulse{to{box-shadow:0 0 0 12px rgba(232,201,135,0),0 4px 14px rgba(0,0,0,.45)}}
 
 @keyframes reveal{
@@ -207,6 +207,7 @@ body::before{
 </style>
 </head>
 <body>
+<audio id="bgm" src="music.mp3" loop preload="auto" playsinline></audio>
 <div class="stage">
   <main class="content">
     <h1 class="shop">اندیشکده چاوش</h1>
@@ -233,8 +234,7 @@ body::before{
   </div>
 </div>
 
-<audio id="bgm" src="music.mp3" loop preload="auto" playsinline></audio>
-<button class="mbtn" id="mbtn" type="button" hidden aria-label="پخش یا قطع موسیقی">
+<button class="mbtn" id="mbtn" type="button" aria-label="پخش یا قطع موسیقی" aria-pressed="false">
   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/>
     <path class="w1" d="M15.5 8.5a5 5 0 0 1 0 7"/>
@@ -298,54 +298,66 @@ document.querySelectorAll(".field").forEach(btn=>{
 });
 </script>
 <script>
-/* موسیقی پس‌زمینه */
+/* موسیقی پس‌زمینه: تلاش برای پخش بلافاصله، با صدای روشن */
 (function(){
-  const audio=document.getElementById("bgm"), btn=document.getElementById("mbtn");
+  const audio=document.getElementById("bgm");
+  const btn=document.getElementById("mbtn");
   const TARGET=.55;
-  let wanted=true, fadeTimer;
-  const setUI=on=>btn.classList.toggle("on",on);
-  const reveal=()=>{ btn.hidden=false; };
-  audio.addEventListener("loadedmetadata",reveal);
-  audio.addEventListener("canplay",reveal);
-  if(audio.readyState>=1) reveal();
+  let wanted=true;
+  const setUI=on=>{
+    btn.classList.toggle("on",on);
+    btn.setAttribute("aria-label",on?"قطع موسیقی":"پخش موسیقی");
+    btn.setAttribute("aria-pressed",String(on));
+  };
+  // دکمه از ابتدا در دسترس است؛ منتظر بارگذاری متن‌ها و فونت‌ها نمی‌ماند.
+  btn.hidden=false;
+  audio.volume=TARGET;
 
-  function fadeIn(){
-    clearInterval(fadeTimer);
-    try{ audio.volume=0; }catch(e){}
-    let v=0;
-    fadeTimer=setInterval(()=>{
-      v=Math.min(TARGET,v+.03);
-      try{ audio.volume=v; }catch(e){}
-      if(v>=TARGET) clearInterval(fadeTimer);
-    },120);
-  }
   async function start(){
-    if(!wanted||!audio.paused||audio.error) return;
+    if(!wanted || !audio.paused || audio.error) return;
     try{
       await audio.play();
-      fadeIn(); setUI(true); unlisten();
-    }catch(e){ setUI(false); }
+      setUI(true);
+    }catch(e){
+      // محدودیت مرورگر: پخش خودکار با صدا ممکن است نیازمند اولین تعامل کاربر باشد.
+      setUI(false);
+    }
   }
-  /* مرورگرها پخش خودکار صدا را تا اولین لمس کاربر مسدود می‌کنند */
-  const events=["pointerup","touchend","click","keydown"];
-  function onGesture(){ start(); }
+
+  const events=["pointerdown","touchstart","click","keydown"];
+  function onGesture(){
+    if(wanted && audio.paused) start();
+    if(!audio.paused) unlisten();
+  }
   function unlisten(){ events.forEach(ev=>window.removeEventListener(ev,onGesture,true)); }
   events.forEach(ev=>window.addEventListener(ev,onGesture,true));
+
+  // درخواست پخش فوری، مستقل از انیمیشن ورود متن‌ها.
   start();
 
   btn.addEventListener("click",e=>{
     e.stopPropagation();
-    if(audio.paused){ wanted=true; start(); }
-    else{ wanted=false; audio.pause(); setUI(false); }
+    if(audio.paused){
+      wanted=true;
+      start();
+    }else{
+      wanted=false;
+      audio.pause();
+      setUI(false);
+    }
   });
-  audio.addEventListener("pause",()=>{ if(document.visibilityState!=="hidden") setUI(false); });
+
   audio.addEventListener("play",()=>setUI(true));
+  audio.addEventListener("pause",()=>setUI(false));
+  audio.addEventListener("error",()=>setUI(false));
 
   document.addEventListener("visibilitychange",()=>{
-    if(document.visibilityState==="hidden"){ if(!audio.paused) audio.pause(); }
-    else if(wanted){ start(); }
+    if(document.visibilityState==="hidden"){
+      if(!audio.paused) audio.pause();
+    }else if(wanted){
+      start();
+    }
   });
-})();
-</script>
+})();</script>
 </body>
 </html>
